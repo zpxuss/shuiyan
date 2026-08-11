@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑歌单</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        /* ===== 编辑页专用样式 ===== */
+        .edit-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e8e8e8;
+        }
+
+        .edit-header h2 {
+            font-size: 24px;
+            color: #1e1f2b;
+            margin: 0;
+        }
+
+        .back-btn {
+            padding: 8px 24px;
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #3a56d4;
+        }
+
+        /* ===== 登录遮罩 ===== */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 40px 40px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-box .logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-box .logo .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .login-box .logo h3 {
+            font-size: 22px;
+            color: #1e1f2b;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .login-box .logo p {
+            color: #888;
+            font-size: 14px;
+            margin: 4px 0 0;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 18px;
+        }
+
+        .login-box .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .login-box .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            background: #f8f9fa;
+            box-sizing: border-box;
+        }
+
+        .login-box .form-group input:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            background: white;
+        }
+
+        .login-box .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2b2d42, #4a4e6b);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 6px;
+        }
+
+        .login-box .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(43, 45, 66, 0.3);
+        }
+
+        .login-box .login-btn:active {
+            transform: scale(0.97);
+        }
+
+        .login-box .login-error {
+            color: #e74c5e;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        .login-box .login-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .login-box .login-hint code {
+            background: #f0f0f5;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #4a6cf7;
+        }
+
+        /* ===== 添加区域 ===== */
+        .add-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 16px 20px;
+            border-radius: 12px;
+            align-items: center;
+        }
+
+        .add-section input {
+            flex: 1;
+            min-width: 140px;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        .add-section input:focus {
+            outline: none;
+            border-color: #4a6cf7;
+        }
+
+        .add-section .add-btn {
+            padding: 10px 28px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .add-section .add-btn:hover {
+            background: #219a52;
+        }
+
+        .add-section .reset-btn {
+            padding: 10px 20px;
+            background: #e74c5e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .add-section .reset-btn:hover {
+            background: #c0392b;
+        }
+
+        /* ===== 统计信息 ===== */
+        .edit-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 0 4px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .edit-stats .count {
+            font-weight: 600;
+            color: #1e1f2b;
+        }
+
+        .edit-stats .clear-all-btn {
+            padding: 4px 16px;
+            background: #e74c5e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .edit-stats .clear-all-btn:hover {
+            background: #c0392b;
+        }
+
+        /* ===== 歌单列表 ===== */
+        .edit-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .edit-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+
+        .edit-list li:hover {
+            border-color: #d0d0d0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .edit-list .song-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .edit-list .song-index {
+            color: #bbb;
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 36px;
+        }
+
+        .edit-list .song-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1e1f2b;
+        }
+
+        .edit-list .song-genre-tag {
+            font-size: 12px;
+            padding: 2px 14px;
+            border-radius: 20px;
+            background: #f0f0f5;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .edit-list .song-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .edit-list .song-actions button {
+            padding: 4px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .edit-list .edit-btn {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .edit-list .edit-btn:hover {
+            background: #e0a800;
+        }
+
+        .edit-list .delete-btn {
+            background: #e74c5e;
+            color: white;
+        }
+
+        .edit-list .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        /* ===== 行内编辑模式 ===== */
+        .edit-list .inline-edit {
+            display: none;
+            gap: 8px;
+            flex: 1;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .edit-list .inline-edit input {
+            padding: 6px 12px;
+            border: 2px solid #4a6cf7;
+            border-radius: 6px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 80px;
+            background: white;
+        }
+
+        .edit-list .inline-edit input:focus {
+            outline: none;
+        }
+
+        .edit-list .inline-edit .save-btn {
+            padding: 4px 16px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .edit-list .inline-edit .save-btn:hover {
+            background: #219a52;
+        }
+
+        .edit-list .inline-edit .cancel-btn {
+            padding: 4px 16px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .edit-list .inline-edit .cancel-btn:hover {
+            background: #7f8c8d;
+        }
+
+        /* ===== 编辑状态 ===== */
+        .edit-list li.editing .song-info {
+            display: none !important;
+        }
+
+        .edit-list li.editing .song-actions {
+            display: none !important;
+        }
+
+        .edit-list li.editing .inline-edit {
+            display: flex !important;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-tip {
+            text-align: center;
+            color: #bbb;
+            padding: 60px 0;
+            font-size: 16px;
+            background: #fafafa;
+            border-radius: 12px;
+            border: 2px dashed #e8e8e8;
+        }
+
+        .empty-tip .emoji {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 内容隐藏（未登录时） ===== */
+        .edit-content {
+            display: none;
+        }
+
+        .edit-content.visible {
+            display: block;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 600px) {
+            .edit-container {
+                margin: 16px auto;
+                padding: 0 12px;
+            }
+
+            .edit-header h2 {
+                font-size: 18px;
+            }
+
+            .add-section {
+                padding: 12px 16px;
+            }
+
+            .add-section input {
+                min-width: 100px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .add-section .add-btn,
+            .add-section .reset-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .edit-list li {
+                padding: 10px 12px;
+                flex-wrap: wrap;
+            }
+
+            .edit-list .song-info {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .edit-list .song-actions {
+                margin-left: 0;
+            }
+
+            .edit-list .inline-edit {
+                flex-wrap: wrap;
+            }
+
+            .edit-list .inline-edit input {
+                min-width: 60px;
+            }
+
+            .login-box {
+                padding: 32px 24px 28px;
+            }
+
+            .login-box .logo .icon {
+                font-size: 36px;
+            }
+
+            .login-box .logo h3 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 登录遮罩 ===== -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <div class="logo">
+                <span class="icon">🔐</span>
+                <h3>编辑歌单</h3>
+                <p>请输入管理员密码</p>
+            </div>
+            <div class="form-group">
+                <label>👤 用户名</label>
+                <input type="text" id="loginUsername" value="yuchu" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label>🔑 密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码" onkeydown="if(event.key==='Enter') handleLogin()">
+            </div>
+            <button class="login-btn" onclick="handleLogin()">🔓 登录</button>
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- ===== 编辑内容（登录后显示） ===== -->
+    <div class="edit-container" id="editContainer">
+        <div class="edit-content" id="editContent">
+            <!-- 头部 -->
+            <div class="edit-header">
+                <h2>📝 编辑歌单</h2>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <span id="userDisplay" style="font-size:13px;color:#888;background:#f0f0f5;padding:4px 14px;border-radius:20px;">👤 admin</span>
+                    <button class="back-btn" onclick="goBack()">← 返回歌单</button>
+                    <button class="back-btn" style="background:#e74c5e;" onclick="handleLogout()">🚪 退出</button>
+                </div>
+            </div>
+
+            <!-- 添加歌曲 -->
+            <div class="add-section">
+                <input type="text" id="songNameInput" placeholder="歌名（如：稻香）">
+                <input type="text" id="songGenreInput" placeholder="类型（如：流行）">
+                <button class="add-btn" onclick="addSong()">➕ 添加歌曲</button>
+                <button class="reset-btn" onclick="resetPlaylist()">🔄 恢复默认</button>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="edit-stats">
+                <span>共 <span class="count" id="songCount">0</span> 首歌</span>
+                <button class="clear-all-btn" onclick="clearAllSongs()">🗑️ 清空全部</button>
+            </div>
+
+            <!-- 歌单列表 -->
+            <ul class="edit-list" id="editList">
+                <!-- JS 动态渲染 -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔐 登录系统
+        // ============================================================
+
+        // 默认登录凭证
+        const DEFAULT_CREDENTIALS = {
+            username: 'yuchu',
+            password: '1234567890'
+        };
+
+        // 登录状态
+        let isLoggedIn = false;
+
+        // DOM 元素
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginError = document.getElementById('loginError');
+        const editContent = document.getElementById('editContent');
+        const userDisplay = document.getElementById('userDisplay');
+
+        // ============================================================
+        // 登录函数
+        // ============================================================
+
+        function handleLogin() {
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+
+            // 清空错误信息
+            loginError.textContent = '';
+
+            // 验证
+            if (!username || !password) {
+                loginError.textContent = '⚠️ 请输入用户名和密码';
+                return;
+            }
+
+            // 检查凭证
+            if (username === DEFAULT_CREDENTIALS.username && password === DEFAULT_CREDENTIALS.password) {
+                // 登录成功
+                isLoggedIn = true;
+                loginOverlay.classList.add('hidden');
+                editContent.classList.add('visible');
+
+                // 显示用户名
+                if (userDisplay) {
+                    userDisplay.textContent = '👤 ' + username;
+                }
+
+                // 保存登录状态到 sessionStorage（刷新页面保持登录）
+                try {
+                    sessionStorage.setItem('editLogin', JSON.stringify({
+                        loggedIn: true,
+                        username: username,
+                        timestamp: Date.now()
+                    }));
+                } catch (e) {}
+
+                // 渲染歌单
+                render();
+
+                console.log('✅ 登录成功：', username);
+            } else {
+                loginError.textContent = '❌ 用户名或密码错误，请重试';
+                loginPassword.value = '';
+                loginPassword.focus();
+            }
+        }
+
+        // ============================================================
+        // 退出登录
+        // ============================================================
+
+        function handleLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                isLoggedIn = false;
+                editContent.classList.remove('visible');
+                loginOverlay.classList.remove('hidden');
+                loginPassword.value = '';
+                loginError.textContent = '';
+                // 清除 sessionStorage
+                try {
+                    sessionStorage.removeItem('editLogin');
+                } catch (e) {}
+                console.log('🚪 已退出登录');
+            }
+        }
+
+        // ============================================================
+        // 检查登录状态（页面加载时）
+        // ============================================================
+
+        function checkLoginStatus() {
+            try {
+                const saved = sessionStorage.getItem('editLogin');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    // 检查是否在有效期内（1小时）
+                    if (data.loggedIn && data.timestamp && (Date.now() - data.timestamp < 3600000)) {
+                        // 自动登录
+                        isLoggedIn = true;
+                        loginOverlay.classList.add('hidden');
+                        editContent.classList.add('visible');
+                        if (userDisplay) {
+                            userDisplay.textContent = '👤 ' + (data.username || 'admin');
+                        }
+                        render();
+                        console.log('🔄 自动登录成功');
+                        return true;
+                    } else {
+                        // 过期，清除
+                        sessionStorage.removeItem('editLogin');
+                    }
+                }
+            } catch (e) {}
+
+            // 未登录，显示登录界面
+            loginOverlay.classList.remove('hidden');
+            editContent.classList.remove('visible');
+            return false;
+        }
+
+        // ============================================================
+        // 📝 歌单编辑逻辑
+        // ============================================================
+
+        // DOM 引用
+        const editList = document.getElementById('editList');
+        const songNameInput = document.getElementById('songNameInput');
+        const songGenreInput = document.getElementById('songGenreInput');
+        const songCountEl = document.getElementById('songCount');
+
+        let editingIndex = -1;
+
+        // ============================================================
+        // 确保 PlaylistAPI 存在
+        // ============================================================
+
+        function ensurePlaylistAPI() {
+            if (typeof PlaylistAPI === 'undefined') {
+                console.warn('⚠️ PlaylistAPI 未定义，使用内联实现');
+
+                const STORAGE_KEY = 'playlist';
+                const DEFAULT_SONGS = [
+                    "谁", "Doll", "探窗", "婚约", "大喜", "谁家", "可能", "天才", "澎湃", "慢慢",
+                    "旋木", "像鱼", "暖暖", "大鱼", "苍耳", "走马", "平庸", "不怕", "再见", "记得",
+                    "续雪", "雨爱", "大眠", "贪慕", "年轮", "迷鹿", "借过", "我曾", "落款", "下潜",
+                    "演员", "她说", "撒野", "冬眠", "嘉宾", "侧脸", "过火", "夜车", "白羊", "传奇",
+                    "房间", "小孩", "直觉", "对视", "虚拟", "小半", "听海", "冲动", "i love u", "两三句",
+                    "燕回巷", "伯虎说", "广寒宫", "小年兽", "牵丝戏", "凑热闹", "苏州河", "口头禅",
+                    "我会等", "七月上", "闹哄哄", "试试吧", "声声慢", "可能否", "太委屈", "我想念",
+                    "愿与愁", "下雨了", "他不懂", "虹之间", "我走后", "想某人", "我害怕",
+                    "我和你", "虫儿飞", "相思遥", "时间轴", "追光者", "我知道", "我看过", "一点点",
+                    "小模样", "爱一点", "第一天", "小尾巴", "醉清风", "小幸运", "霸王别姬", "一笑倾城",
+                    "万有引力", "我想我会", "爱的魔法", "告白气球", "明天过后", "夏天的风", "气象站台",
+                    "小镇姑娘", "茶花开了", "连名带姓", "无人之岛", "字字句句", "忽而今夏", "说好不哭",
+                    "天外来物", "如果可以", "那个夏天", "寂寞烟火", "忘了没有", "想想念念", "颠倒之间",
+                    "好久不见", "忘记时间", "就忘了吧", "失落沙洲", "我很快乐", "不再联系", "像风一样",
+                    "身骑白马", "情字最大", "错位时空", "一路生花", "勾指起誓", "今夜有雨", "后会无期",
+                    "晴天和猫", "情非得已", "忽然之间", "熬夜上瘾", "一半一半", "荷塘月色", "明天，你好",
+                    "他乡的月亮", "辞九门回忆", "人间惊鸿宴", "新贵妃醉酒", "泼天的富贵", "爱的感叹号",
+                    "陪你看星星", "空山新雨后", "恶龙与小熊", "已经有我啦", "奇妙能力歌", "会呼吸的痛",
+                    "爱我还是他", "突然好想你", "想你时风起", "小了白了兔", "会开花的云", "没那么简单",
+                    "只是太爱你", "新梅花三弄", "亲爱的你啊", "踮起脚尖爱", "等一场大雨", "快乐的扑满",
+                    "阳光下的星星", "暗恋这件小事", "有可能的夜晚", "推开世界的门", "梦雨星海之间",
+                    "化身孤岛的鲸", "阿拉斯加海湾", "离开我的依赖", "如晴天似雨天", "我还有点小糊涂",
+                    "晚夜微雨问海棠", "请你吃个冰激凌", "白月光与朱砂痣", "像你这样的朋友",
+                    "酸酸甜甜就是我", "你的眼睛像星星", "好像要牵你的手", "山外小楼夜听雨",
+                    "这世界那么多人", "我期待的不是雪", "第57次取消发送", "我恨明月不照我",
+                    "我变了，我没变", "云朵变成棉花糖", "一个人想着一个人", "在加纳共和国离婚",
+                    "就让这大雨全都落下", "我多喜欢你，你会知道", "我喜欢你时内心的活动",
+                    "无论你多怪异我还是会喜欢你", "失控", "阿嬷", "宝贝", "褪黑素", "你是我的小狗",
+                    "老公公老婆婆", "小城夏天", "年", "消散对白", "爱笑的眼睛", "锁", "爱你", "睫毛弯弯",
+                    "爱如潮水", "爱的供养", "安静", "不完美的小孩", "泡沫", "多远都要在一起", "东京不太热",
+                    "当你", "关键词", "孤单北半球", "咖喱咖喱", "给我一首歌的时间", "红色高跟鞋", "画",
+                    "好想爱这个世界啊", "后来", "后会无期", "静悄悄", "交换余生", "可惜没如果", "落空",
+                    "魔法城堡", "麦浪", "慢冷", "童话", "绿色", "那女孩对我说", "明明就", "那天下雨了",
+                    "歡迎光臨", "青柠", "亲爱的那不是爱情", "热爱105°的你", "如果的事", "如果爱忘了",
+                    "太聪明", "天后", "天黑黑", "同手同脚", "踏浪", "修炼爱情", "雪落下的声音", "小情歌",
+                    "月牙湾", "云与海", "阳光彩虹小白马", "一个像夏天一个像秋天", "云烟成雨", "烟雨行舟",
+                    "疑心病", "有点甜", "奢香夫人", "一格格", "有何不可", "中毒", "爱就一个字", "枫叶城",
+                    "半壶纱", "不染", "赤岭", "春泥", "寄明月", "九张机", "浪人琵琶", "若梦", "童话镇",
+                    "蝴蝶泉边", "勾指起誓"
+                ];
+
+                function getGenre(song) {
+                    const gufeng = ['探窗', '婚约', '伯虎说', '广寒宫', '牵丝戏', '声声慢', '辞九门回忆', '新贵妃醉酒', '人间惊鸿宴', '半壶纱', '不染', '寄明月', '九张机', '浪人琵琶', '若梦', '童话镇', '蝴蝶泉边', '烟雨行舟', '赤岭', '春泥', '枫叶城', '燕回巷', '相思遥', '霸王别姬', '一笑倾城', '勾指起誓', '山外小楼夜听雨', '晚夜微雨问海棠', '白月光与朱砂痣', '新梅花三弄', '空山新雨后', '梦雨星海之间', '化身孤岛的鲸', '如晴天似雨天', '年', '锁', '年轮', '苍耳', '落款', '下潜', '续雪', '小年兽', '苏州河', '口头禅', '颠倒之间', '情字最大', '错位时空', '一路生花'];
+                    const minyao = ['七月上', '走马', '小半', '虚拟', '小城夏天', '麦浪'];
+                    const erge = ['虫儿飞', '小了白了兔', '小幸运', '小模样', '小尾巴', '宝贝', '老公公老婆婆', '小城夏天', '小年兽', '快乐', '晴天和猫', '恶龙与小熊', '已经有我啦', '请你吃个冰激凌', '云朵变成棉花糖', '酸酸甜甜就是我', '你的眼睛像星星', '爱的魔法', '咖喱咖喱', '踏浪'];
+                    for (const kw of gufeng) { if (song.includes(kw)) return '古风'; }
+                    for (const kw of minyao) { if (song.includes(kw)) return '民谣'; }
+                    for (const kw of erge) { if (song.includes(kw)) return '儿歌'; }
+                    return '流行';
+                }
+
+                window.PlaylistAPI = {
+                    get: function() {
+                        const stored = localStorage.getItem(STORAGE_KEY);
+                        if (stored) {
+                            try {
+                                const data = JSON.parse(stored);
+                                if (Array.isArray(data) && data.length > 0) return data;
+                            } catch (e) {}
+                        }
+                        const playlist = DEFAULT_SONGS.map(name => ({ name, genre: getGenre(name) }));
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+                        return playlist;
+                    },
+                    save: function(playlist) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+                    },
+                    reset: function() {
+                        const playlist = DEFAULT_SONGS.map(name => ({ name, genre: getGenre(name) }));
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+                        return playlist;
+                    },
+                    add: function(name, genre) {
+                        if (!name || !name.trim()) throw new Error('歌名不能为空');
+                        const playlist = this.get();
+                        playlist.push({ name: name.trim(), genre: genre || '流行' });
+                        this.save(playlist);
+                        return playlist;
+                    },
+                    deleteByIndex: function(index) {
+                        const playlist = this.get();
+                        if (index < 0 || index >= playlist.length) throw new Error('索引越界');
+                        const deleted = playlist.splice(index, 1);
+                        this.save(playlist);
+                        return deleted[0];
+                    },
+                    update: function(index, newName, newGenre) {
+                        const playlist = this.get();
+                        if (index < 0 || index >= playlist.length) throw new Error('索引越界');
+                        if (newName && newName.trim()) playlist[index].name = newName.trim();
+                        if (newGenre && newGenre.trim()) playlist[index].genre = newGenre.trim();
+                        this.save(playlist);
+                        return playlist[index];
+                    },
+                    count: function() {
+                        return this.get().length;
+                    }
+                };
+            }
+        }
+
+        // ============================================================
+        // 渲染函数
+        // ============================================================
+
+        function render() {
+            if (!isLoggedIn) return;
+
+            try {
+                ensurePlaylistAPI();
+                const playlist = PlaylistAPI.get();
+
+                if (!playlist || playlist.length === 0) {
+                    editList.innerHTML = `
+                        <li class="empty-tip">
+                            <span class="emoji">🎵</span>
+                            歌单为空，添加一首歌吧！
+                        </li>
+                    `;
+                    if (songCountEl) songCountEl.textContent = '0';
+                    return;
+                }
+
+                let html = '';
+                for (let i = 0; i < playlist.length; i++) {
+                    const song = playlist[i];
+                    const isEditing = (editingIndex === i);
+                    const genreColor = getGenreColor(song.genre);
+
+                    html += `
+                        <li data-index="${i}" class="${isEditing ? 'editing' : ''}">
+                            <div class="song-info">
+                                <span class="song-index">#${i + 1}</span>
+                                <span class="song-name">${escapeHtml(song.name)}</span>
+                                <span class="song-genre-tag" style="color:${genreColor};background:${genreColor}15;border:1px solid ${genreColor}30;">
+                                    ${escapeHtml(song.genre)}
+                                </span>
+                            </div>
+                            <div class="song-actions">
+                                <button class="edit-btn" onclick="window.startEdit(${i})">✏️ 修改</button>
+                                <button class="delete-btn" onclick="window.deleteSong(${i})">🗑️ 删除</button>
+                            </div>
+                            <div class="inline-edit">
+                                <input type="text" class="edit-name" value="${escapeHtml(song.name)}" placeholder="歌名">
+                                <input type="text" class="edit-genre" value="${escapeHtml(song.genre)}" placeholder="类型">
+                                <button class="save-btn" onclick="window.saveEdit(${i})">保存</button>
+                                <button class="cancel-btn" onclick="window.cancelEdit()">取消</button>
+                            </div>
+                        </li>
+                    `;
+                }
+
+                editList.innerHTML = html;
+                if (songCountEl) songCountEl.textContent = playlist.length;
+
+            } catch (error) {
+                console.error('渲染失败:', error);
+                editList.innerHTML = `<li class="empty-tip">⚠️ 加载失败，请刷新页面</li>`;
+            }
+        }
+
+        // ============================================================
+        // 工具函数
+        // ============================================================
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getGenreColor(genre) {
+            const colorMap = {
+                '流行': '#4a6cf7',
+                '古风': '#e67e22',
+                '民谣': '#27ae60',
+                '儿歌': '#e74c5e',
+                '未分类': '#95a5a6'
+            };
+            return colorMap[genre] || '#95a5a6';
+        }
+
+        function showToast(message, isSuccess = true) {
+            const existing = document.querySelector('.edit-toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'edit-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: ${isSuccess ? 'rgba(39, 174, 96, 0.95)' : 'rgba(231, 76, 94, 0.95)'};
+                backdrop-filter: blur(12px);
+                color: white;
+                padding: 16px 32px;
+                border-radius: 16px;
+                font-size: 1.1rem;
+                font-weight: 500;
+                z-index: 999999;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+                animation: toastIn 0.3s ease;
+                pointer-events: none;
+                user-select: none;
+                max-width: 90%;
+                text-align: center;
+            `;
+
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s ease forwards';
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+            }, 1500);
+        }
+
+        // ============================================================
+        // 核心操作函数
+        // ============================================================
+
+        window.addSong = function() {
+            if (!isLoggedIn) return;
+            ensurePlaylistAPI();
+
+            const name = songNameInput.value.trim();
+            const genre = songGenreInput.value.trim() || '流行';
+
+            if (!name) {
+                showToast('❌ 请输入歌名', false);
+                songNameInput.focus();
+                return;
+            }
+
+            try {
+                PlaylistAPI.add(name, genre);
+                songNameInput.value = '';
+                songGenreInput.value = '';
+                render();
+                showToast(`✅ 已添加: "${name}"`);
+            } catch (error) {
+                showToast('❌ ' + error.message, false);
+            }
+        };
+
+        window.deleteSong = function(index) {
+            if (!isLoggedIn) return;
+            ensurePlaylistAPI();
+
+            const playlist = PlaylistAPI.get();
+            if (index < 0 || index >= playlist.length) return;
+            const songName = playlist[index].name;
+
+            if (!confirm(`确定要删除 "${songName}" 吗？`)) return;
+
+            try {
+                PlaylistAPI.deleteByIndex(index);
+                if (editingIndex === index) {
+                    editingIndex = -1;
+                } else if (editingIndex > index) {
+                    editingIndex--;
+                }
+                render();
+                showToast(`🗑️ 已删除: "${songName}"`);
+            } catch (error) {
+                showToast('❌ ' + error.message, false);
+            }
+        };
+
+        window.startEdit = function(index) {
+            if (!isLoggedIn) return;
+            if (editingIndex !== -1 && editingIndex !== index) {
+                window.cancelEdit();
+            }
+            editingIndex = index;
+            render();
+            setTimeout(() => {
+                const li = document.querySelector(`li[data-index="${index}"]`);
+                if (li) {
+                    const input = li.querySelector('.edit-name');
+                    if (input) input.focus();
+                }
+            }, 50);
+        };
+
+        window.saveEdit = function(index) {
+            if (!isLoggedIn) return;
+            ensurePlaylistAPI();
+
+            const li = document.querySelector(`li[data-index="${index}"]`);
+            if (!li) return;
+
+            const nameInput = li.querySelector('.edit-name');
+            const genreInput = li.querySelector('.edit-genre');
+            const newName = nameInput.value.trim();
+            const newGenre = genreInput.value.trim() || '流行';
+
+            if (!newName) {
+                showToast('❌ 歌名不能为空', false);
+                nameInput.focus();
+                return;
+            }
+
+            try {
+                PlaylistAPI.update(index, newName, newGenre);
+                editingIndex = -1;
+                render();
+                showToast(`✅ 已更新: "${newName}"`);
+            } catch (error) {
+                showToast('❌ ' + error.message, false);
+            }
+        };
+
+        window.cancelEdit = function() {
+            editingIndex = -1;
+            render();
+        };
+
+        window.clearAllSongs = function() {
+            if (!isLoggedIn) return;
+            ensurePlaylistAPI();
+
+            const count = PlaylistAPI.count();
+            if (count === 0) {
+                showToast('📭 歌单已经为空', false);
+                return;
+            }
+
+            if (!confirm(`确定要清空全部 ${count} 首歌吗？此操作不可撤销！`)) return;
+
+            try {
+                const playlist = PlaylistAPI.get();
+                for (let i = playlist.length - 1; i >= 0; i--) {
+                    PlaylistAPI.deleteByIndex(i);
+                }
+                editingIndex = -1;
+                render();
+                showToast(`🗑️ 已清空全部 ${count} 首歌`);
+            } catch (error) {
+                showToast('❌ ' + error.message, false);
+            }
+        };
+
+        window.resetPlaylist = function() {
+            if (!isLoggedIn) return;
+            if (!confirm('确定要恢复默认歌单吗？当前数据将被覆盖！')) return;
+
+            try {
+                ensurePlaylistAPI();
+                PlaylistAPI.reset();
+                editingIndex = -1;
+                render();
+                showToast(`🔄 已恢复默认歌单，共 ${PlaylistAPI.count()} 首歌`);
+            } catch (error) {
+                showToast('❌ ' + error.message, false);
+            }
+        };
+
+        window.goBack = function() {
+            if (editingIndex !== -1) {
+                window.cancelEdit();
+            }
+            history.back();
+        };
+
+        // ============================================================
+        // 键盘快捷键
+        // ============================================================
+
+        document.addEventListener('keydown', function(e) {
+            if (!isLoggedIn) return;
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active === songNameInput || active === songGenreInput) {
+                    e.preventDefault();
+                    window.addSong();
+                }
+            }
+
+            if (e.key === 'Escape' && editingIndex !== -1) {
+                window.cancelEdit();
+            }
+        });
+
+        // ============================================================
+        // 页面初始化
+        // ============================================================
+
+        // 检查登录状态
+        checkLoginStatus();
+
+        // 监听 storage 事件
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'playlist' && isLoggedIn) {
+                console.log('📦 检测到其他页面修改了歌单，自动刷新');
+                if (editingIndex !== -1) {
+                    editingIndex = -1;
+                }
+                render();
+            }
+        });
+
+        // 页面显示时刷新
+        window.addEventListener('pageshow', function() {
+            if (isLoggedIn) {
+                if (editingIndex !== -1) {
+                    editingIndex = -1;
+                }
+                render();
+            }
+        });
+
+        console.log('📝 编辑页初始化完成（带登录功能）');
+        console.log('💡 默认账号: admin / admin123');
+        console.log('💡 快捷键: Ctrl+Enter 添加 | ESC 取消编辑');
+        console.log('💡 登录状态会保持 1 小时');
+    </script>
+
+</body>
+</html>
